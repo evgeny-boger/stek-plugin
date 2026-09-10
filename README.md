@@ -10,8 +10,20 @@
 
 ## Зависимости
 
-Пакеты КриптоПро ставятся отдельно (не из Debian; дистрибутив КриптоПро CSP
-и КриптоПро ЭЦП SDK). См. `debian/control` и `debian/README.Debian`.
+Пакеты КриптоПро ставятся отдельно (не из Debian). Скачать (нужна бесплатная
+регистрация на cryptopro.ru):
+
+- **КриптоПро CSP** (архив `linux-amd64_deb.tgz`) — даёт `lsb-cprocsp-*`,
+  провайдер KC1, читатели носителей и `cprocsp-legacy-64`:
+  <https://www.cryptopro.ru/products/csp/downloads>
+- **КриптоПро ЭЦП SDK** — `cprocsp-pki-cades-64` (нужен только для pycades;
+  в CSP 5.0 R3 / 5.0.12900+ уже входит в дистрибутив CSP):
+  <https://www.cryptopro.ru/products/cades/downloads>
+- **pycades** (исходники модуля Python) — собирается через
+  `tools/pycades/build.sh`:
+  <https://cryptopro.ru/sites/default/files/products/cades/pycades/pycades.zip>
+
+Подробнее — `debian/control` и `debian/README.Debian`.
 
 | Пакет | Зачем |
 |---|---|
