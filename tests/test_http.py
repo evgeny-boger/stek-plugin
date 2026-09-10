@@ -129,10 +129,6 @@ class HttpTest(unittest.TestCase):
         self.assertEqual((status, body), (200, b'#Error#ReglamentException Unknown command "WHATEVER"'))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class BindConflictTest(unittest.TestCase):
     def test_second_instance_exits_cleanly_on_busy_port(self):
         import socket, tempfile
@@ -148,3 +144,7 @@ class BindConflictTest(unittest.TestCase):
             serve(plugin, "127.0.0.1", port)
         finally:
             s.close()
+
+
+if __name__ == "__main__":
+    unittest.main()

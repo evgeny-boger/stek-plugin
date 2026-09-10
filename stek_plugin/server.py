@@ -81,6 +81,7 @@ class Plugin:
     def __init__(self, backend, db_path=DB_NAME, log_path=LOG_NAME):
         self.backend = backend
         self.db = TaskDB(db_path)
+        self.db.fail_stale()     # не переисполнять задачи, зависшие с прошлого запуска
         self.db.cleanup()
         self.worker = TaskWorker(self.db, backend)
         self.worker.start()
@@ -135,6 +136,10 @@ class Plugin:
         if command == "GETRESULT":       # 0x466cb0
             return self._get_result(params)
         if command == "GETLOGFILE":      # 0x466aa0
+            if self.log_path in ("-", ""):   # лог направлен в journald
+                return 200, json_, build_json(
+                    False, errors=["Логи направляются в journald: "
+                                   "journalctl --user -u stek-plugin"]).encode()
             try:
                 with open(self.log_path, "rb") as fh:
                     return 200, json_, build_json(True, fh.read()).encode()
@@ -286,6 +291,7 @@ def handler_factory(plugin):
         server_version = SERVER_SOFTWARE
         sys_version = ""
         protocol_version = "HTTP/1.1"
+        timeout = 30                 # не давать соединению висеть вечно
 
         def version_string(self): return SERVER_SOFTWARE
 
@@ -352,6 +358,8 @@ def handler_factory(plugin):
 
 
 def serve(plugin, host=BIND_HOST, port=BIND_PORT):
+    import signal
+    import threading as _threading
     # 127.0.0.1:PORT is shared across the whole machine, so only one instance
     # can own it. If it is already served (another user session, or the
     # original StekTrustPlugin), exit cleanly (status 0) so systemd does not
@@ -365,6 +373,13 @@ def serve(plugin, host=BIND_HOST, port=BIND_PORT):
                         "is serving it — exiting.", host, port)
             return
         raise
+    # systemd шлёт SIGTERM — завершаемся штатно (shutdown() из другого потока).
+    def _stop(_signum, _frame):
+        _threading.Thread(target=server.shutdown, daemon=True).start()
+    try:
+        signal.signal(signal.SIGTERM, _stop)
+    except ValueError:
+        pass                          # не главный поток (например, в тестах)
     try:
         server.serve_forever()
     finally:

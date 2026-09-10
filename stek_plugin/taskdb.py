@@ -88,7 +88,7 @@ class TaskDB:
         task.start_time = task.modify_time = datetime.now()
         with self._lock:
             self._conn.execute(
-                f"INSERT INTO CRYPTO_TASKS ({COLUMNS}) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                f"INSERT OR REPLACE INTO CRYPTO_TASKS ({COLUMNS}) VALUES (?,?,?,?,?,?,?,?,?,?)",
                 (task.id, task.ttype, _now(), task.status, task.cert_sn, task.cert_thumb,
                  task.str_param, task.in_data, None, _now()))
             self._conn.commit()
@@ -132,6 +132,17 @@ class TaskDB:
                     or time.monotonic() >= deadline:
                 return task
             time.sleep(TASK_POLL_INTERVAL)
+
+    def fail_stale(self) -> None:
+        """Задачи, оставшиеся New/Wait после перезапуска, помечаем ошибкой,
+        чтобы фоновой воркер не переподписал/перерасшифровал их без клиента."""
+        with self._lock:
+            self._conn.execute(
+                "UPDATE CRYPTO_TASKS SET STATUS=?, OUT_DATA=?, MODIFY_TIME=? "
+                "WHERE STATUS IN (?, ?)",
+                (STATUS_ERROR, "прервано при перезапуске службы".encode(),
+                 _now(), STATUS_NEW, STATUS_WAIT))
+            self._conn.commit()
 
     def cleanup(self) -> None:
         now = datetime.now()

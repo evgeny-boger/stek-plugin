@@ -328,3 +328,44 @@ class ParamsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RobustnessTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.plugin = Plugin(FakeBackend(), ":memory:", "-")  # log to journald
+
+    def tearDown(self):
+        self.plugin.close()
+        self.tmp.cleanup()
+
+    def test_getlogfile_under_journald(self):
+        status, ctype, body = self.plugin.handle("GET", "GETLOGFILE", Params(""), b"")
+        d = json.loads(body)
+        self.assertFalse(d["Status"])
+        self.assertIn("journald", d["Errors"][0])
+
+    def test_duplicate_taskid_replaces(self):
+        self.plugin.handle("POST", "GETSIGN", Params("CertThumb=" + "a" * 40 + "&TaskId=dup"),
+                           b64(b"one").encode())
+        # повторный тот же TaskId не роняет IntegrityError
+        st, ct, body = self.plugin.handle("POST", "GETSIGN",
+                                          Params("CertThumb=" + "a" * 40 + "&TaskId=dup"),
+                                          b64(b"two").encode())
+        self.assertEqual(json.loads(body)["Data"], "dup")
+        self.assertEqual(len([t for t in self.plugin.db.list_all() if t.id == "dup"]), 1)
+
+    def test_fail_stale_on_restart(self):
+        from stek_plugin.taskdb import TaskDB, Task
+        from stek_plugin import TASK_DETACHED_SIGN, STATUS_WAIT, STATUS_ERROR
+        path = self.tmp.name + "/t.db"
+        db = TaskDB(path)
+        db.insert(Task(id="left", ttype=TASK_DETACHED_SIGN, cert_thumb="a" * 40,
+                       in_data=b"x"), queued=True)  # STATUS_WAIT
+        db.close()
+        db2 = TaskDB(path)
+        db2.fail_stale()
+        t = db2.get("left")
+        self.assertEqual(t.status, STATUS_ERROR)
+        self.assertIn("перезапуск", t.error)
+        db2.close()
