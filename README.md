@@ -35,7 +35,39 @@
 
 Сертификат с закрытым ключом должен быть в пользовательском хранилище `My`.
 
-## Запуск
+## Установка (Debian-пакет)
+
+1. Поставьте пакеты КриптоПро из скачанного `linux-amd64_deb` (ссылки выше):
+
+   ```bash
+   cd linux-amd64_deb
+   sudo ./install.sh                       # базовый CSP + провайдер KC1 + читатели
+   # для backend pycades (даёт SIGN_HASH):
+   sudo apt install ./cprocsp-legacy-64_*.deb ./cprocsp-pki-cades-64_*.deb
+   ```
+
+2. Установите плагин (из локального .deb — зависимостей КриптоПро в apt нет,
+   они ставятся на шаге 1):
+
+   ```bash
+   sudo apt install ./stek-plugin-python_2.7.0.9-1_all.deb
+   ```
+
+3. Запустите сервис. Пакет включает его автоматически (старт при следующем
+   входе в систему); чтобы запустить сразу в текущей сессии:
+
+   ```bash
+   systemctl --user start stek-plugin
+   systemctl --user status stek-plugin
+   ```
+
+4. Смотреть логи:
+
+   ```bash
+   journalctl --user -u stek-plugin -f
+   ```
+
+## Запуск вручную (без пакета)
 
 ```bash
 python -m stek_plugin [--host 127.0.0.1] [--port 18080] [--backend auto] \
@@ -77,23 +109,16 @@ base64 -w0 doc.xml | curl -X POST --data-binary @- \
 
 ## systemd
 
-Служба использует ключи пользователя (токен через `pcscd` или контейнер в
-профиле), поэтому это **пользовательский** юнит. Пакет включает его
-(`systemctl --global enable`) — он стартует при следующем входе в систему.
-Запустить сразу в текущей сессии:
+Юнит **пользовательский** (`systemctl --user`), потому что использует ключи
+пользователя (токен через `pcscd` или контейнер в профиле). Запускает
+`stek-plugin --log -` — лог в journald. Команды установки/старта/логов — в
+разделе «Установка» выше.
 
-```bash
-systemctl --user start stek-plugin
-systemctl --user status stek-plugin
-journalctl --user -u stek-plugin -f
-```
-
-Юнит запускает `stek-plugin --log -` (лог в journald). PIN для автономной
-работы — в drop-in
+PIN для автономной работы — через drop-in
 (`systemctl --user edit stek-plugin`, `Environment=STEK_CSP_PIN=…`); учтите,
 что сохранённый PIN даёт любой странице подписывать без запроса.
 
-## Debian-пакет
+## Сборка пакета из исходников
 
 ```bash
 dpkg-buildpackage -us -uc -b
