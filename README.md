@@ -108,3 +108,8 @@ python -m unittest discover -s tests -t . -v
 Протокол/HTTP — на фейковом backend; живые тесты (реальный CSP) — только с
 `STEK_LIVE=1` (подпись дополнительно `STEK_LIVE_SIGN=<отпечаток>`,
 `STEK_CSP_PIN`).
+
+## Лицензия
+
+MIT — см. [LICENSE](LICENSE). Код КриптоПро не включён; КриптоПро CSP
+лицензируется отдельно.
