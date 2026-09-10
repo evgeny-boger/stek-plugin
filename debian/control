@@ -1,7 +1,7 @@
 Source: stek-plugin-python
 Section: utils
 Priority: optional
-Maintainer: Wiren Board <info@wirenboard.com>
+Maintainer: Evgeny Boger <eugenyboger@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                pybuild-plugin-pyproject,

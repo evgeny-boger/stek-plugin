@@ -2,7 +2,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: stek-plugin-python
 
 Files: *
-Copyright: 2026 Evgeny Boger
+Copyright: 2026 Evgeny Boger <eugenyboger@gmail.com>
 License: MIT
 
 License: MIT
