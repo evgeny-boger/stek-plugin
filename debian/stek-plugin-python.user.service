@@ -1,0 +1,24 @@
+[Unit]
+Description=Стэк.Плагин local signing service (Python reproduction)
+Documentation=file:/usr/share/doc/stek-plugin-python/README.md
+After=pcscd.socket
+Wants=pcscd.socket
+
+[Service]
+Type=simple
+# Runs in the user session so it can reach the user's CryptoPro key
+# containers (token via pcscd, or HDIMAGE in the user profile).
+ExecStart=/usr/bin/stek-plugin --host 127.0.0.1 --port 18080 --db %t/stek-plugin/tasks.db --log -
+RuntimeDirectory=stek-plugin
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+# The key-container PIN, if you want unattended signing (SECURITY: any local
+# web page can then sign/decrypt without a prompt). Prefer a drop-in:
+#   systemctl --user edit stek-plugin
+#   [Service]
+#   Environment=STEK_CSP_PIN=xxxxxx
+# Environment=STEK_CSP_PIN=
+
+[Install]
+WantedBy=default.target

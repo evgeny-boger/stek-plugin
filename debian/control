@@ -1,0 +1,36 @@
+Source: stek-plugin-python
+Section: utils
+Priority: optional
+Maintainer: Wiren Board <info@wirenboard.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: stek-plugin-python
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-cryptography (>= 42),
+         lsb-cprocsp-capilite-64,
+         lsb-cprocsp-kc1-64
+Recommends: cprocsp-pki-cades-64,
+            cprocsp-legacy-64
+Suggests: cprocsp-rdr-pcsc-64,
+          cprocsp-rdr-rutoken-64,
+          ifd-rutokens
+Description: Python reproduction of Стэк.Плагин (StekTrustPlugin) local HTTP service
+ Protocol-compatible reimplementation of the StekTrustPlugin 2.7.0.9 local
+ signing service (127.0.0.1:18080, /TRUST/). It exposes the same commands
+ (PING, ENUMCERTS, GETSIGN, SIGN_HASH, DECRYPT, ...) to browser clients and
+ delegates all cryptography to CryptoPro CSP.
+ .
+ No GOST/CMS/ASN.1/XML-DSig is implemented here: signing, decryption and hash
+ signing go through CryptoPro's certified libraries, via the official pycades
+ binding when available or the cryptcp/certmgr command-line tools otherwise.
+ X.509 parsing uses python3-cryptography.
+ .
+ The CryptoPro packages are distributed by CryptoPro, not from the Debian
+ archive; see /usr/share/doc/stek-plugin-python/README.Debian.

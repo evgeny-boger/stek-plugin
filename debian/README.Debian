@@ -1,0 +1,49 @@
+stek-plugin-python and CryptoPro CSP
+====================================
+
+The Depends/Recommends on lsb-cprocsp-*, cprocsp-* are CryptoPro CSP
+packages. They are NOT in the Debian archive; obtain them from CryptoPro
+(the "КриптоПро CSP" Linux distribution, e.g. linux-amd64_deb.tgz, and the
+"КриптоПро ЭЦП SDK" for the CAdES parts) and install them first, then install
+this package.
+
+Runtime requirements
+--------------------
+
+Mandatory (the plugin will not sign/decrypt without them):
+
+  * lsb-cprocsp-base            base runtime
+  * lsb-cprocsp-capilite-64     provides cryptcp, certmgr and libcapi* — the
+                                CryptoAPI the backends call
+  * lsb-cprocsp-kc1-64          KC1 GOST provider (for the private keys)
+  * lsb-cprocsp-rdr-64          reader support
+
+For the pycades backend (enables SIGN_HASH and avoids spawning cryptcp):
+
+  * cprocsp-pki-cades-64        CAdES SDK (libcades/libcppcades)
+  * cprocsp-legacy-64           provides libcplib.so.4 (CBlob symbols) that the
+                                CAdES SDK needs on CSP 5.0.13800+; without it
+                                "import pycades" fails with an undefined symbol
+                                _ZNK9CryptoPro5CBlob6pbDataEv and the plugin
+                                falls back to the cryptcp backend.
+
+  The pycades Python module itself is not a .deb; build it from CryptoPro's
+  pycades.zip (see tools/pycades/ in the source) and install pycades.so into
+  the Python path.
+
+Service
+-------
+
+The package installs a systemd *user* unit (stek-plugin.service). It runs in
+the user session because it needs that user's CryptoPro key containers:
+
+  systemctl --user enable --now stek-plugin
+  journalctl --user -u stek-plugin -f
+
+It logs to stderr (--log -), captured by journald. A stored PIN for
+unattended signing goes in a drop-in (systemctl --user edit stek-plugin);
+note that a stored PIN lets any local web page sign/decrypt without a prompt.
+
+For a Rutoken / smart-card token:
+
+  * cprocsp-rdr-pcsc-64, cprocsp-rdr-rutoken-64, ifd-rutokens, pcscd

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+# runtime artifacts (default DB / log next to the process)
+StekTrustPlugin.gdb
+StekTrustPlugin.log
+*.deb

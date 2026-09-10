@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: stek-plugin-python
+
+Files: *
+Copyright: 2026 Wiren Board
+License: proprietary
+ Internal reproduction for interoperability. Not for redistribution without
+ permission. Contains no CryptoPro code; CryptoPro CSP is required at runtime
+ and licensed separately.

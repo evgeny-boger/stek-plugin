@@ -1,0 +1,6 @@
+extend-diff-ignore = "(^|/)(StekTrustPlugin\.(gdb|log)|__pycache__|.*\.pyc|.*\.egg-info)$"
+tar-ignore = "__pycache__"
+tar-ignore = "*.pyc"
+tar-ignore = "StekTrustPlugin.gdb"
+tar-ignore = "StekTrustPlugin.log"
+tar-ignore = ".git"

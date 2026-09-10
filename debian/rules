@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+export PYBUILD_NAME=stek_plugin
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+# install systemd/stek-plugin.service as a user unit (systemctl --user)
+override_dh_installsystemduser:
+	dh_installsystemduser --name=stek-plugin --no-start
