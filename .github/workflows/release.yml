@@ -1,0 +1,55 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip "cryptography>=42"
+      - name: Run tests
+        run: python -m unittest discover -s tests -t . -v
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # для создания релиза и загрузки файлов
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            debhelper dh-python python3-all python3-setuptools dpkg-dev
+      - name: Build .deb
+        run: dpkg-buildpackage -us -uc -b
+      - name: Build wheel + sdist
+        run: |
+          python3 -m pip install --upgrade build
+          python3 -m build
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist-out
+          cp ../*.deb dist-out/
+          cp dist/*.whl dist/*.tar.gz dist-out/ 2>/dev/null || true
+          ls -l dist-out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: dist-out/*
+      - name: Publish to Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-out/*
+          generate_release_notes: true

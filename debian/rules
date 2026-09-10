@@ -7,3 +7,6 @@ export PYBUILD_NAME=stek_plugin
 # install systemd/stek-plugin.service as a user unit (systemctl --user)
 override_dh_installsystemduser:
 	dh_installsystemduser --name=stek-plugin --no-start
+
+# tests run in CI; skip during package build (avoids a build-time cryptography dep)
+override_dh_auto_test:
